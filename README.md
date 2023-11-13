@@ -7,7 +7,7 @@ I have been helping businesses to increase profit, earn market share and win cus
 Below are projects I've been working on. 
 
 
-[Customer Analysis](https://github.com/jon-herrick/portfolio/blob/main/Customers_D10.pdf)
+[Offer Engagement: Defining the Optimal Offer Type](https://github.com/jon-herrick/portfolio/blob/main/D214-Capstone_Proportions.pdf)
 
 [Exploritory Data Analysis: Retail Data](http://rpubs.com/jonherrick/Retail_EDA)
 
