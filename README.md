@@ -11,3 +11,4 @@ Below are projects I've been working on.
 
 [Exploritory Data Analysis: Retail Data](http://rpubs.com/jonherrick/Retail_EDA)
 
+[RFM Segmentation: Recency, Frequency, Monetary Scoring](https://rpubs.com/jonherrick/RFM-Categorization)
