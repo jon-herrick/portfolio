@@ -9,6 +9,12 @@ Below are projects I've been working on.
 
 [Offer Engagement: Defining the Optimal Offer Type](https://github.com/jon-herrick/portfolio/blob/main/D214-Capstone_Proportions.pdf)
 
-[Exploritory Data Analysis: Retail Data](http://rpubs.com/jonherrick/Retail_EDA)
+[Exploratory Data Analysis: Retail Data](http://rpubs.com/jonherrick/Retail_EDA)
 
 [RFM Segmentation: Recency, Frequency, Monetary Scoring](https://rpubs.com/jonherrick/RFM-Categorization)
+
+[Market Basket Analysis](https://github.com/jon-herrick/portfolio/blob/main/Maket%20Basket%20Analysis.pdf)
+
+[Customer Analysis (D10)](https://github.com/jon-herrick/portfolio/blob/main/Customers_D10.pdf)
+
+[D210 Research Paper](https://github.com/jon-herrick/portfolio/blob/main/D210%20Paper.docx)
