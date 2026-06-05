@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Usage Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:            #F9F6F0;
+      --surface:       #FFFFFF;
+      --surface-alt:   #F4F1EB;
+      --border:        #E3DED7;
+      --border-strong: #C8C2B8;
+      --text-primary:  #1C1A17;
+      --text-secondary:#6B6660;
+      --text-muted:    #A5A09A;
+      --accent:        #2D5A3D;
+      --accent-hover:  #1F3F2B;
+      --accent-light:  #EBF2EE;
+      --gold:          #B8832A;
+      --gold-light:    #FDF5E8;
+      --danger:        #C0392B;
+      --danger-light:  #FDF0EE;
+      --info:          #2563EB;
+      --info-light:    #EFF6FF;
+      --radius:        12px;
+      --radius-sm:     8px;
+      --shadow-sm:     0 1px 4px rgba(0,0,0,0.07);
+      --shadow:        0 2px 12px rgba(0,0,0,0.09);
+      --header-h:      64px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      color: var(--text-primary);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── Header ── */
+    .app-header {
+      position: sticky; top: 0; z-index: 100;
+      height: var(--header-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+    .header-inner {
+      max-width: 1400px; margin: 0 auto;
+      padding: 0 24px; height: 100%;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .header-brand { display: flex; align-items: center; gap: 20px; }
+    .back-link {
+      color: var(--text-secondary); text-decoration: none;
+      font-size: 13px; font-weight: 500; transition: color 0.15s; white-space: nowrap;
+    }
+    .back-link:hover { color: var(--accent); }
+    .header-brand h1 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 22px; font-weight: 600; color: var(--text-primary);
+      letter-spacing: -0.3px; white-space: nowrap;
+    }
+    .header-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .date-range-tabs {
+      display: flex; gap: 2px;
+      background: var(--surface-alt); border-radius: var(--radius-sm);
+      padding: 3px; border: 1px solid var(--border);
+    }
+    .date-range-tabs .tab {
+      padding: 5px 11px; border: none; background: transparent;
+      font-size: 12px; font-weight: 500; color: var(--text-secondary);
+      border-radius: 6px; cursor: pointer; transition: all 0.15s; font-family: inherit;
+    }
+    .date-range-tabs .tab.active {
+      background: var(--surface); color: var(--text-primary); box-shadow: var(--shadow-sm);
+    }
+    .date-range-tabs .tab:hover:not(.active) { color: var(--text-primary); }
+    .btn {
+      padding: 8px 14px; border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: all 0.15s; white-space: nowrap; border: 1px solid transparent;
+      font-family: inherit;
+    }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-outline {
+      background: transparent; color: var(--text-secondary); border-color: var(--border);
+    }
+    .btn-outline:hover {
+      background: var(--surface-alt); color: var(--text-primary); border-color: var(--border-strong);
+    }
+    .btn-ghost {
+      background: transparent; color: var(--text-muted); border-color: transparent;
+      padding: 8px 10px; font-size: 12px;
+    }
+    .btn-ghost:hover { color: var(--text-secondary); background: var(--surface-alt); }
+
+    /* ── Main ── */
+    .main-content { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    section { margin-bottom: 20px; }
+
+    /* ── Stat Cards ── */
+    .cards-grid {
+      display: grid; grid-template-columns: repeat(4,1fr); gap: 14px;
+    }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow-sm);
+    }
+    .stat-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.9px; color: var(--text-muted); margin-bottom: 8px;
+    }
+    .stat-value {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 30px; font-weight: 600; color: var(--text-primary);
+      line-height: 1; margin-bottom: 6px;
+    }
+    .stat-sub { font-size: 12px; color: var(--text-muted); }
+    .stat-trend {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 4px; margin-top: 4px;
+    }
+    .trend-up   { color: var(--danger); background: var(--danger-light); }
+    .trend-down { color: var(--accent); background: var(--accent-light); }
+    .trend-flat { color: var(--text-muted); background: var(--surface-alt); }
+
+    /* ── Charts ── */
+    .charts-row1 { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+    .charts-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .chart-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow-sm);
+    }
+    .chart-card-hd {
+      display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px;
+    }
+    .chart-card-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .chart-card-sub   { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .badge {
+      font-size: 10px; font-weight: 600; padding: 2px 8px;
+      border-radius: 20px; white-space: nowrap;
+    }
+    .badge-green { background: var(--accent-light); color: var(--accent); }
+    .badge-gold  { background: var(--gold-light);   color: var(--gold); }
+    .badge-info  { background: var(--info-light);   color: var(--info); }
+    .chart-wrap { position: relative; }
+
+    /* chart donut legend */
+    .donut-legend { margin-top: 12px; display: flex; flex-direction: column; gap: 7px; }
+    .legend-item  { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .legend-dot   { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .legend-name  { color: var(--text-secondary); flex: 1; }
+    .legend-pct   { font-weight: 600; color: var(--text-primary); }
+    .legend-val   { color: var(--text-muted); font-size: 11px; }
+
+    /* ── Insights row ── */
+    .insights-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    .insight-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow-sm);
+    }
+    .insight-title {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 14px;
+    }
+
+    /* Budget */
+    .budget-amounts {
+      display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px;
+    }
+    .budget-spent { font-weight: 600; }
+    .budget-limit { color: var(--text-muted); }
+    .budget-track {
+      height: 8px; background: var(--surface-alt);
+      border-radius: 4px; overflow: hidden; margin-bottom: 8px;
+    }
+    .budget-fill {
+      height: 100%; border-radius: 4px; transition: width 0.5s ease;
+      background: var(--accent);
+    }
+    .budget-fill.warn   { background: var(--gold); }
+    .budget-fill.danger { background: var(--danger); }
+    .budget-note { font-size: 11px; color: var(--text-muted); }
+    .budget-set  {
+      display: flex; gap: 6px; margin-top: 12px;
+      padding-top: 12px; border-top: 1px solid var(--border);
+    }
+    .budget-set input {
+      flex: 1; padding: 6px 10px; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); font-size: 12px; background: var(--surface-alt);
+      color: var(--text-primary); outline: none; font-family: inherit;
+    }
+    .budget-set input:focus { border-color: var(--accent); background: white; }
+
+    /* Metric list */
+    .metric-list { display: flex; flex-direction: column; gap: 8px; }
+    .metric-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 10px; background: var(--surface-alt); border-radius: var(--radius-sm);
+    }
+    .metric-label { font-size: 12px; color: var(--text-secondary); }
+    .metric-val   { font-size: 13px; font-weight: 600; }
+    .metric-hint  {
+      font-size: 10px; color: var(--text-muted); margin-top: 2px;
+      padding: 0 10px; font-style: italic;
+    }
+
+    /* Heatmap */
+    .heatmap-outer { overflow-x: auto; }
+    .heatmap-wrap  { display: inline-flex; gap: 0; flex-direction: column; min-width: 100%; }
+    .heatmap-month-row {
+      display: flex; padding-left: 24px; margin-bottom: 3px; gap: 0;
+    }
+    .heatmap-body  { display: flex; gap: 0; }
+    .hm-day-labels {
+      display: flex; flex-direction: column; gap: 1px;
+      padding-top: 0; margin-right: 4px; flex-shrink: 0;
+    }
+    .hm-day-label  { font-size: 9px; color: var(--text-muted); height: 11px; line-height: 11px; }
+    .hm-cols       { display: flex; gap: 1px; }
+    .hm-col        { display: flex; flex-direction: column; gap: 1px; }
+    .hm-cell {
+      width: 11px; height: 11px; border-radius: 2px;
+      background: var(--surface-alt); cursor: default; flex-shrink: 0;
+      position: relative;
+    }
+    .hm-cell[title]:hover::after {
+      content: attr(title);
+      position: absolute; bottom: 115%; left: 50%; transform: translateX(-50%);
+      background: var(--text-primary); color: white; font-size: 10px;
+      padding: 3px 7px; border-radius: 4px; white-space: nowrap; pointer-events: none;
+      z-index: 10;
+    }
+    .hm-0 { background: var(--surface-alt); }
+    .hm-1 { background: #C8E6D4; }
+    .hm-2 { background: #8DC9A8; }
+    .hm-3 { background: #4DA87C; }
+    .hm-4 { background: var(--accent); }
+    .hm-legend {
+      display: flex; align-items: center; gap: 4px;
+      margin-top: 8px; font-size: 10px; color: var(--text-muted);
+    }
+    .hm-legend-cell { width: 11px; height: 11px; border-radius: 2px; }
+
+    /* ── Table ── */
+    .table-section {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow: hidden;
+    }
+    .table-hd {
+      padding: 14px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .table-hd h3 { font-size: 13px; font-weight: 600; }
+    .table-ctrl  { display: flex; gap: 8px; align-items: center; }
+    select.filter-sel {
+      padding: 5px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+      font-size: 12px; background: var(--surface-alt); color: var(--text-secondary);
+      outline: none; cursor: pointer; font-family: inherit;
+    }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th {
+      padding: 9px 16px; text-align: left;
+      font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--text-muted); background: var(--surface-alt);
+      border-bottom: 1px solid var(--border);
+    }
+    .data-table td {
+      padding: 9px 16px; font-size: 12px;
+      border-bottom: 1px solid var(--border); vertical-align: middle;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover   { background: var(--surface-alt); }
+    .data-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .data-table .cost-cell { font-weight: 600; color: var(--text-primary); }
+    .model-chip {
+      display: inline-block; padding: 2px 8px; border-radius: 20px;
+      font-size: 10px; font-weight: 600; white-space: nowrap;
+    }
+    .chip-opus   { background: var(--gold-light);  color: var(--gold);   }
+    .chip-sonnet { background: var(--accent-light); color: var(--accent); }
+    .chip-haiku  { background: var(--info-light);   color: var(--info);   }
+    .chip-other  { background: var(--surface-alt);  color: var(--text-secondary); }
+    .src-chip {
+      font-size: 10px; color: var(--text-muted); background: var(--surface-alt);
+      padding: 1px 6px; border-radius: 3px;
+    }
+    .del-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-muted); font-size: 14px; padding: 2px 6px;
+      border-radius: 4px; transition: all 0.15s;
+    }
+    .del-btn:hover { color: var(--danger); background: var(--danger-light); }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center; padding: 56px 24px; color: var(--text-muted);
+    }
+    .empty-state h3 {
+      font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500;
+      color: var(--text-secondary); margin-bottom: 8px;
+    }
+    .empty-state p { font-size: 13px; margin-bottom: 20px; line-height: 1.6; }
+    .empty-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+    /* ── Data management ── */
+    .data-mgmt { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .panel {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow-sm);
+    }
+    .panel h3 { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+    .panel-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
+    .drop-zone {
+      border: 2px dashed var(--border); border-radius: var(--radius-sm);
+      padding: 24px; text-align: center; cursor: pointer;
+      transition: all 0.2s; margin-bottom: 12px;
+    }
+    .drop-zone:hover, .drop-zone.over {
+      border-color: var(--accent); background: var(--accent-light);
+    }
+    .drop-zone .dz-icon { font-size: 22px; margin-bottom: 6px; }
+    .drop-zone p { font-size: 12px; color: var(--text-secondary); }
+    .drop-zone strong { color: var(--accent); }
+    .info-box {
+      background: var(--surface-alt); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 10px 12px; font-size: 11px;
+      color: var(--text-secondary); line-height: 1.6;
+    }
+    .info-box a { color: var(--accent); text-decoration: none; }
+    .info-box code {
+      background: var(--border); padding: 1px 4px;
+      border-radius: 3px; font-family: 'SF Mono', Consolas, monospace; font-size: 10px;
+    }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .form-group { display: flex; flex-direction: column; gap: 3px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--text-muted);
+    }
+    .form-ctrl {
+      padding: 7px 10px; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); font-size: 12px;
+      background: var(--surface-alt); color: var(--text-primary);
+      outline: none; transition: border-color 0.15s; font-family: inherit;
+    }
+    .form-ctrl:focus { border-color: var(--accent); background: white; }
+    select.form-ctrl { cursor: pointer; }
+    .form-actions { margin-top: 10px; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 999;
+      background: var(--text-primary); color: white;
+      padding: 10px 18px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+      box-shadow: var(--shadow); opacity: 0; transform: translateY(10px);
+      transition: all 0.25s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.ok  { background: var(--accent); }
+    .toast.err { background: var(--danger); }
+
+    /* ── Responsive ── */
+    @media (max-width: 1080px) {
+      .cards-grid  { grid-template-columns: repeat(2,1fr); }
+      .charts-row1 { grid-template-columns: 1fr; }
+      .charts-row2 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 760px) {
+      .main-content { padding: 14px; }
+      .header-inner { padding: 0 14px; }
+      .insights-row { grid-template-columns: 1fr; }
+      .data-mgmt    { grid-template-columns: 1fr; }
+      .header-controls { gap: 6px; }
+    }
+    @media (max-width: 520px) {
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <a href="/" class="back-link">← Portfolio</a>
+      <h1>Claude Usage</h1>
+    </div>
+    <div class="header-controls">
+      <div class="date-range-tabs">
+        <button class="tab" data-range="7d">7D</button>
+        <button class="tab active" data-range="30d">30D</button>
+        <button class="tab" data-range="90d">90D</button>
+        <button class="tab" data-range="all">All</button>
+      </div>
+      <button id="importBtn" class="btn btn-primary">Import CSV</button>
+      <button id="addBtn"    class="btn btn-outline">+ Add entry</button>
+      <button id="sampleBtn" class="btn btn-ghost"   title="Load 30 days of demo data">Demo</button>
+    </div>
+  </div>
+</header>
+
+<main class="main-content">
+
+  <!-- ── STAT CARDS ── -->
+  <section class="cards-grid" id="statsSection">
+    <div class="stat-card">
+      <div class="stat-label">Total Cost</div>
+      <div class="stat-value" id="cardCost">—</div>
+      <div class="stat-sub"  id="cardCostSub">no data yet</div>
+      <div id="cardCostTrend"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Tokens</div>
+      <div class="stat-value" id="cardTokens">—</div>
+      <div class="stat-sub"  id="cardTokensSub">no data yet</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Cache Savings</div>
+      <div class="stat-value" id="cardCache">—</div>
+      <div class="stat-sub"  id="cardCacheSub">no data yet</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Daily Cost</div>
+      <div class="stat-value" id="cardAvg">—</div>
+      <div class="stat-sub"  id="cardAvgSub">no data yet</div>
+    </div>
+  </section>
+
+  <!-- ── CHARTS ROW 1 ── -->
+  <section class="charts-row1">
+    <div class="chart-card">
+      <div class="chart-card-hd">
+        <div>
+          <div class="chart-card-title">Cost Over Time</div>
+          <div class="chart-card-sub">Daily API spend by model</div>
+        </div>
+        <span class="badge badge-green" id="costTrendBadge">—</span>
+      </div>
+      <div class="chart-wrap" style="height:200px">
+        <canvas id="costTrendChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-hd">
+        <div>
+          <div class="chart-card-title">Model Distribution</div>
+          <div class="chart-card-sub">Share of total cost</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:160px">
+        <canvas id="modelDistChart"></canvas>
+      </div>
+      <div class="donut-legend" id="donutLegend"></div>
+    </div>
+  </section>
+
+  <!-- ── CHARTS ROW 2 ── -->
+  <section class="charts-row2">
+    <div class="chart-card">
+      <div class="chart-card-hd">
+        <div>
+          <div class="chart-card-title">Token Breakdown by Model</div>
+          <div class="chart-card-sub">Input · Output · Cache read</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:180px">
+        <canvas id="tokenBreakdownChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-hd">
+        <div>
+          <div class="chart-card-title">Activity Heatmap</div>
+          <div class="chart-card-sub">Daily spend intensity — past 12 weeks</div>
+        </div>
+      </div>
+      <div class="heatmap-outer" id="heatmapWrap"></div>
+    </div>
+  </section>
+
+  <!-- ── INSIGHTS ROW ── -->
+  <section class="insights-row">
+    <!-- Budget -->
+    <div class="insight-card">
+      <div class="insight-title">Monthly Budget</div>
+      <div class="budget-amounts">
+        <span class="budget-spent" id="budgetSpent">$0.00</span>
+        <span class="budget-limit" id="budgetLimit">/ $— limit</span>
+      </div>
+      <div class="budget-track">
+        <div class="budget-fill" id="budgetFill" style="width:0%"></div>
+      </div>
+      <div class="budget-note" id="budgetNote">Set a monthly budget to track spending.</div>
+      <div class="budget-set">
+        <input type="number" id="budgetInput" placeholder="Monthly limit ($)" min="0" step="1">
+        <button class="btn btn-primary btn-sm" onclick="setBudget()" style="padding:6px 12px;font-size:12px">Set</button>
+      </div>
+    </div>
+
+    <!-- Key metrics -->
+    <div class="insight-card">
+      <div class="insight-title">Efficiency Metrics</div>
+      <div class="metric-list" id="metricsList"></div>
+    </div>
+
+    <!-- Model breakdown text -->
+    <div class="insight-card">
+      <div class="insight-title">Usage Patterns</div>
+      <div class="metric-list" id="patternsList"></div>
+    </div>
+  </section>
+
+  <!-- ── ACTIVITY TABLE ── -->
+  <section class="table-section">
+    <div class="table-hd">
+      <h3>Recent Activity</h3>
+      <div class="table-ctrl">
+        <select class="filter-sel" id="modelFilter" onchange="renderTable()">
+          <option value="">All models</option>
+        </select>
+        <button class="btn btn-ghost" style="font-size:11px" onclick="clearAllData()">Clear all</button>
+      </div>
+    </div>
+    <div id="tableContainer"></div>
+  </section>
+
+  <!-- ── DATA MANAGEMENT ── -->
+  <section class="data-mgmt">
+    <!-- CSV Import -->
+    <div class="panel" id="importPanel">
+      <h3>Import CSV</h3>
+      <p class="panel-sub">Import usage data from the Anthropic console or a custom CSV file.</p>
+      <div class="drop-zone" id="dropZone">
+        <div class="dz-icon">📂</div>
+        <p>Drop a CSV file here or <strong>click to browse</strong></p>
+      </div>
+      <input type="file" id="fileInput" accept=".csv,text/csv" style="display:none">
+      <div class="info-box">
+        Export from <a href="https://console.anthropic.com/settings/usage" target="_blank">console.anthropic.com → Usage</a>.
+        Required columns (case-insensitive): <code>date</code>, <code>model</code>,
+        <code>input_tokens</code>, <code>output_tokens</code>.
+        Optional: <code>cache_creation_input_tokens</code>, <code>cache_read_input_tokens</code>.
+      </div>
+    </div>
+
+    <!-- Manual Entry -->
+    <div class="panel" id="addPanel">
+      <h3>Add Entry Manually</h3>
+      <p class="panel-sub">Record a single API call or a daily summary.</p>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" class="form-ctrl" id="fDate">
+        </div>
+        <div class="form-group">
+          <label>Model</label>
+          <select class="form-ctrl" id="fModel">
+            <option value="claude-opus-4-8">Opus 4.8</option>
+            <option value="claude-sonnet-4-6" selected>Sonnet 4.6</option>
+            <option value="claude-haiku-4-5">Haiku 4.5</option>
+            <option value="claude-opus-4-7">Opus 4.7</option>
+            <option value="claude-opus-4-6">Opus 4.6</option>
+            <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+            <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku</option>
+            <option value="claude-3-opus-20240229">Claude 3 Opus</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Input Tokens</label>
+          <input type="number" class="form-ctrl" id="fInput" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Output Tokens</label>
+          <input type="number" class="form-ctrl" id="fOutput" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Cache Read Tokens</label>
+          <input type="number" class="form-ctrl" id="fCacheRead" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Cache Write Tokens</label>
+          <input type="number" class="form-ctrl" id="fCacheWrite" placeholder="0" min="0">
+        </div>
+        <div class="form-group full">
+          <label>Note (optional)</label>
+          <input type="text" class="form-ctrl" id="fNote" placeholder="e.g. Code review session">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="submitManual()">Add Entry</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+'use strict';
+
+// ================================================================
+// PRICING  ($ per 1M tokens)
+// cache_write = 125% of input; cache_read = 10% of input
+// ================================================================
+const PRICING = {
+  'claude-opus-4-8':              { input: 5.00,  output: 25.00  },
+  'claude-opus-4-7':              { input: 5.00,  output: 25.00  },
+  'claude-opus-4-6':              { input: 5.00,  output: 25.00  },
+  'claude-sonnet-4-6':            { input: 3.00,  output: 15.00  },
+  'claude-haiku-4-5':             { input: 1.00,  output: 5.00   },
+  'claude-3-5-sonnet':            { input: 3.00,  output: 15.00  },
+  'claude-3-5-haiku':             { input: 0.80,  output: 4.00   },
+  'claude-3-opus':                { input: 15.00, output: 75.00  },
+  'claude-3-sonnet':              { input: 3.00,  output: 15.00  },
+  'claude-3-haiku':               { input: 0.25,  output: 1.25   },
+};
+
+const MODEL_COLORS = {
+  opus:   '#B8832A',
+  sonnet: '#2D5A3D',
+  haiku:  '#2563EB',
+  other:  '#6B6660',
+};
+const MODEL_COLORS_LIGHT = {
+  opus:   'rgba(184,131,42,0.15)',
+  sonnet: 'rgba(45,90,61,0.15)',
+  haiku:  'rgba(37,99,235,0.15)',
+  other:  'rgba(107,102,96,0.15)',
+};
+
+// ================================================================
+// HELPERS
+// ================================================================
+function fmtPrice(v, decimals = 2) {
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  return '$' + v.toFixed(decimals);
+}
+function fmtNum(v) {
+  if (!v && v !== 0) return '—';
+  if (v >= 1e9) return (v/1e9).toFixed(1) + 'B';
+  if (v >= 1e6) return (v/1e6).toFixed(1) + 'M';
+  if (v >= 1e3) return (v/1e3).toFixed(1) + 'K';
+  return String(v);
+}
+function fmtDate(s) {
+  try {
+    const d = new Date(s + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+  } catch { return s; }
+}
+function todayStr() {
+  return new Date().toISOString().slice(0,10);
+}
+function daysAgo(n) {
+  const d = new Date(); d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0,10);
+}
+
+function normalizeModelId(id) {
+  if (!id) return 'unknown';
+  id = id.toLowerCase().trim();
+  // strip date suffix -YYYYMMDD
+  id = id.replace(/-\d{8}$/, '');
+  return id;
+}
+function getModelFamily(id) {
+  const n = normalizeModelId(id);
+  if (n.includes('opus'))   return 'opus';
+  if (n.includes('sonnet')) return 'sonnet';
+  if (n.includes('haiku'))  return 'haiku';
+  return 'other';
+}
+function getModelDisplayName(id) {
+  const n = normalizeModelId(id);
+  if (n === 'claude-opus-4-8')   return 'Opus 4.8';
+  if (n === 'claude-opus-4-7')   return 'Opus 4.7';
+  if (n === 'claude-opus-4-6')   return 'Opus 4.6';
+  if (n === 'claude-sonnet-4-6') return 'Sonnet 4.6';
+  if (n === 'claude-haiku-4-5')  return 'Haiku 4.5';
+  if (n === 'claude-3-5-sonnet') return 'C3.5 Sonnet';
+  if (n === 'claude-3-5-haiku')  return 'C3.5 Haiku';
+  if (n === 'claude-3-opus')     return 'C3 Opus';
+  if (n === 'claude-3-sonnet')   return 'C3 Sonnet';
+  if (n === 'claude-3-haiku')    return 'C3 Haiku';
+  // prettify anything else
+  return id.replace('claude-','').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+}
+
+function getPricing(modelId) {
+  const n = normalizeModelId(modelId);
+  if (PRICING[n]) return PRICING[n];
+  // try prefix match
+  for (const key of Object.keys(PRICING)) {
+    if (n.startsWith(key) || key.startsWith(n)) return PRICING[key];
+  }
+  return { input: 3.00, output: 15.00 }; // fallback: sonnet-tier
+}
+
+function calcCost(r) {
+  const p = getPricing(r.model);
+  const inputCost      = (r.inputTokens  || 0) / 1e6 * p.input;
+  const outputCost     = (r.outputTokens || 0) / 1e6 * p.output;
+  const cacheReadCost  = (r.cacheReadTokens  || 0) / 1e6 * (p.input * 0.10);
+  const cacheWriteCost = (r.cacheWriteTokens || 0) / 1e6 * (p.input * 1.25);
+  return inputCost + outputCost + cacheReadCost + cacheWriteCost;
+}
+function calcCacheSavings(r) {
+  const p = getPricing(r.model);
+  // savings = what cache_read tokens would've cost at full input price vs 10% price
+  return (r.cacheReadTokens || 0) / 1e6 * (p.input * 0.90);
+}
+
+// ================================================================
+// STATE
+// ================================================================
+const STORAGE_KEY = 'claude_dashboard_v2';
+let state = {
+  records:  [],
+  settings: { monthlyBudget: 0 }
+};
+let activeRange = '30d';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state = { ...state, ...JSON.parse(raw) };
+  } catch (e) { /* fresh start */ }
+}
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+// ================================================================
+// FILTERING
+// ================================================================
+function getStartDate() {
+  if (activeRange === '7d')  return daysAgo(7);
+  if (activeRange === '30d') return daysAgo(30);
+  if (activeRange === '90d') return daysAgo(90);
+  return '0000-01-01';
+}
+function filteredRecords() {
+  const start = getStartDate();
+  return state.records.filter(r => r.date >= start);
+}
+
+// ================================================================
+// CHART INSTANCES
+// ================================================================
+const charts = {};
+
+function destroyChart(name) {
+  if (charts[name]) { charts[name].destroy(); delete charts[name]; }
+}
+
+function initCostTrendChart(records) {
+  destroyChart('costTrend');
+  const ctx = document.getElementById('costTrendChart').getContext('2d');
+
+  // Build daily cost by model
+  const days = buildDayRange();
+  const models = uniqueModels(records);
+  const colorFn = m => MODEL_COLORS[getModelFamily(m)] || MODEL_COLORS.other;
+
+  const datasets = models.map(m => {
+    const data = days.map(d => {
+      const recs = records.filter(r => r.date === d && normalizeModelId(r.model) === m);
+      return recs.reduce((s, r) => s + calcCost(r), 0);
+    });
+    return {
+      label: getModelDisplayName(m),
+      data,
+      borderColor: colorFn(m),
+      backgroundColor: MODEL_COLORS_LIGHT[getModelFamily(m)] || 'rgba(0,0,0,0.05)',
+      borderWidth: 2,
+      tension: 0.35,
+      fill: models.length === 1,
+      pointRadius: days.length > 30 ? 0 : 3,
+      pointHoverRadius: 5,
+    };
+  });
+
+  // Total line if multiple models
+  if (models.length > 1) {
+    const totalData = days.map(d => {
+      return records.filter(r => r.date === d).reduce((s, r) => s + calcCost(r), 0);
+    });
+    datasets.unshift({
+      label: 'Total',
+      data: totalData,
+      borderColor: '#1C1A17',
+      backgroundColor: 'rgba(28,26,23,0.04)',
+      borderWidth: 2,
+      borderDash: [4,3],
+      tension: 0.35,
+      fill: false,
+      pointRadius: days.length > 30 ? 0 : 2,
+      pointHoverRadius: 5,
+    });
+  }
+
+  charts.costTrend = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: days.map(fmtDate),
+      datasets,
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: datasets.length > 1, position: 'top', labels: { boxWidth: 10, font: { size: 11, family: 'Inter' }, padding: 12 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${fmtPrice(ctx.parsed.y, 4)}`
+          },
+          bodyFont: { size: 11, family: 'Inter' },
+          titleFont: { size: 11, family: 'Inter' },
+        },
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10, family: 'Inter' }, maxTicksLimit: 8, color: '#A5A09A' } },
+        y: {
+          grid: { color: '#F4F1EB' },
+          ticks: {
+            font: { size: 10, family: 'Inter' }, color: '#A5A09A',
+            callback: v => '$' + v.toFixed(v < 0.01 ? 4 : v < 1 ? 3 : 2),
+          },
+        },
+      },
+    },
+  });
+}
+
+function initModelDistChart(records) {
+  destroyChart('modelDist');
+  const ctx = document.getElementById('modelDistChart').getContext('2d');
+  const byModel = aggregateByModel(records);
+  const keys    = Object.keys(byModel);
+
+  if (!keys.length) {
+    document.getElementById('donutLegend').innerHTML = '<p style="font-size:12px;color:var(--text-muted)">No data</p>';
+    return;
+  }
+
+  const totalCost = keys.reduce((s,k) => s + byModel[k].cost, 0);
+  const labels  = keys.map(getModelDisplayName);
+  const data    = keys.map(k => byModel[k].cost);
+  const colors  = keys.map(k => MODEL_COLORS[getModelFamily(k)] || MODEL_COLORS.other);
+
+  charts.modelDist = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: '#fff', hoverOffset: 4 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '68%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.label}: ${fmtPrice(ctx.parsed, 4)} (${((ctx.parsed/totalCost)*100).toFixed(1)}%)`
+          },
+          bodyFont: { size: 11, family: 'Inter' },
+        },
+      },
+    },
+  });
+
+  const legend = document.getElementById('donutLegend');
+  legend.innerHTML = keys.map((k,i) => `
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${colors[i]}"></div>
+      <span class="legend-name">${labels[i]}</span>
+      <span class="legend-pct">${((data[i]/totalCost)*100).toFixed(1)}%</span>
+      <span class="legend-val">${fmtPrice(data[i],3)}</span>
+    </div>`).join('');
+}
+
+function initTokenBreakdownChart(records) {
+  destroyChart('tokenBreakdown');
+  const ctx = document.getElementById('tokenBreakdownChart').getContext('2d');
+  const byModel = aggregateByModel(records);
+  const keys = Object.keys(byModel);
+
+  if (!keys.length) return;
+
+  const labels = keys.map(getModelDisplayName);
+
+  charts.tokenBreakdown = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Input',
+          data: keys.map(k => byModel[k].inputTokens),
+          backgroundColor: keys.map(k => MODEL_COLORS[getModelFamily(k)] || MODEL_COLORS.other),
+          borderRadius: 3,
+        },
+        {
+          label: 'Output',
+          data: keys.map(k => byModel[k].outputTokens),
+          backgroundColor: keys.map(k => {
+            const c = MODEL_COLORS[getModelFamily(k)] || MODEL_COLORS.other;
+            return c + '99';
+          }),
+          borderRadius: 3,
+        },
+        {
+          label: 'Cache Read',
+          data: keys.map(k => byModel[k].cacheReadTokens),
+          backgroundColor: keys.map(k => {
+            const c = MODEL_COLORS[getModelFamily(k)] || MODEL_COLORS.other;
+            return c + '44';
+          }),
+          borderRadius: 3,
+        },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index' },
+      plugins: {
+        legend: { position: 'top', labels: { boxWidth: 10, font: { size: 11, family: 'Inter' }, padding: 12 } },
+        tooltip: {
+          callbacks: { label: ctx => ` ${ctx.dataset.label}: ${fmtNum(ctx.parsed.y)}` },
+          bodyFont: { size: 11, family: 'Inter' },
+        },
+      },
+      scales: {
+        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11, family: 'Inter' }, color: '#A5A09A' } },
+        y: { stacked: true, grid: { color: '#F4F1EB' }, ticks: { font: { size: 10, family: 'Inter' }, color: '#A5A09A', callback: fmtNum } },
+      },
+    },
+  });
+}
+
+// ================================================================
+// AGGREGATION
+// ================================================================
+function buildDayRange() {
+  const start = getStartDate();
+  const today = todayStr();
+  const days = [];
+  let d = new Date(start + 'T00:00:00');
+  const end = new Date(today + 'T00:00:00');
+  while (d <= end) {
+    days.push(d.toISOString().slice(0,10));
+    d.setDate(d.getDate() + 1);
+  }
+  return days;
+}
+
+function uniqueModels(records) {
+  const seen = new Set();
+  records.forEach(r => seen.add(normalizeModelId(r.model)));
+  return [...seen];
+}
+
+function aggregateByModel(records) {
+  const result = {};
+  records.forEach(r => {
+    const m = normalizeModelId(r.model);
+    if (!result[m]) result[m] = { cost:0, inputTokens:0, outputTokens:0, cacheReadTokens:0, cacheWriteTokens:0, count:0 };
+    result[m].cost            += calcCost(r);
+    result[m].inputTokens     += r.inputTokens     || 0;
+    result[m].outputTokens    += r.outputTokens    || 0;
+    result[m].cacheReadTokens += r.cacheReadTokens || 0;
+    result[m].cacheWriteTokens+= r.cacheWriteTokens|| 0;
+    result[m].count++;
+  });
+  return result;
+}
+
+// ================================================================
+// HEATMAP
+// ================================================================
+function renderHeatmap(records) {
+  const wrap = document.getElementById('heatmapWrap');
+  if (!wrap) return;
+
+  // Build cost-per-day map
+  const costMap = {};
+  records.forEach(r => {
+    costMap[r.date] = (costMap[r.date] || 0) + calcCost(r);
+  });
+
+  // Past 12 weeks = 84 days, aligned to weeks (Sun–Sat)
+  const today = new Date();
+  // Find last Sunday
+  const dayOfWeek = today.getDay(); // 0=Sun
+  const endSunday = new Date(today);
+  endSunday.setDate(today.getDate() + (6 - dayOfWeek)); // next Sat
+  const startDate = new Date(endSunday);
+  startDate.setDate(endSunday.getDate() - 84 + 1);
+
+  // Build weeks array
+  const weeks = [];
+  let cur = new Date(startDate);
+  while (cur <= endSunday) {
+    const week = [];
+    for (let d = 0; d < 7; d++) {
+      const iso = cur.toISOString().slice(0,10);
+      const cost = costMap[iso] || 0;
+      week.push({ iso, cost, future: cur > today });
+      cur.setDate(cur.getDate() + 1);
+    }
+    weeks.push(week);
+  }
+
+  // Quantile thresholds
+  const vals = Object.values(costMap).filter(v => v > 0).sort((a,b)=>a-b);
+  const q1 = vals[Math.floor(vals.length*0.25)] || 0.001;
+  const q2 = vals[Math.floor(vals.length*0.50)] || 0.01;
+  const q3 = vals[Math.floor(vals.length*0.75)] || 0.1;
+
+  function level(v) {
+    if (v === 0) return 0;
+    if (v <= q1)  return 1;
+    if (v <= q2)  return 2;
+    if (v <= q3)  return 3;
+    return 4;
+  }
+
+  // Month labels
+  const monthLabels = [];
+  let prevMonth = -1;
+  weeks.forEach((week, wi) => {
+    const m = new Date(week[0].iso + 'T00:00:00').getMonth();
+    if (m !== prevMonth) {
+      monthLabels.push({ wi, label: new Date(week[0].iso + 'T00:00:00').toLocaleDateString('en-US',{month:'short'}) });
+      prevMonth = m;
+    }
+  });
+
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  let html = '<div class="heatmap-wrap">';
+
+  // Month row
+  html += '<div class="heatmap-month-row">';
+  let mi = 0;
+  weeks.forEach((_, wi) => {
+    if (mi < monthLabels.length && monthLabels[mi].wi === wi) {
+      html += `<div style="width:${12}px;font-size:9px;color:var(--text-muted);text-align:left;min-width:${12}px;overflow:visible;white-space:nowrap">${monthLabels[mi].label}</div>`;
+      mi++;
+    } else {
+      html += `<div style="width:12px;min-width:12px"></div>`;
+    }
+  });
+  html += '</div>';
+
+  // Heatmap body
+  html += '<div class="heatmap-body">';
+  html += '<div class="hm-day-labels">';
+  dayNames.forEach(d => html += `<div class="hm-day-label">${d[0]}</div>`);
+  html += '</div>';
+
+  html += '<div class="hm-cols">';
+  weeks.forEach(week => {
+    html += '<div class="hm-col">';
+    week.forEach(cell => {
+      const lv = cell.future ? 0 : level(cell.cost);
+      const title = cell.future ? '' : (cell.cost > 0 ? `${cell.iso}: ${fmtPrice(cell.cost,4)}` : cell.iso + ': no activity');
+      html += `<div class="hm-cell hm-${lv}" title="${title}"></div>`;
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '</div>';
+
+  // Legend
+  html += '<div class="hm-legend"><span>Less</span>';
+  [0,1,2,3,4].forEach(l => html += `<div class="hm-legend-cell hm-${l}"></div>`);
+  html += '<span>More</span></div>';
+  html += '</div>';
+
+  wrap.innerHTML = html;
+}
+
+// ================================================================
+// STAT CARDS
+// ================================================================
+function updateCards(records) {
+  const prev = prevPeriodRecords();
+  const total    = records.reduce((s,r) => s + calcCost(r), 0);
+  const prevTotal= prev.reduce((s,r) => s + calcCost(r), 0);
+  const tokens   = records.reduce((s,r) => s + (r.inputTokens||0) + (r.outputTokens||0) + (r.cacheReadTokens||0), 0);
+  const savings  = records.reduce((s,r) => s + calcCacheSavings(r), 0);
+  const savingsPct = total > 0 ? (savings / (total + savings)) * 100 : 0;
+
+  const days = new Set(records.map(r => r.date)).size || 1;
+  const avg  = total / days;
+
+  setText('cardCost', total > 0 ? fmtPrice(total, total < 1 ? 4 : 2) : '—');
+  setText('cardCostSub', records.length + ' request' + (records.length !== 1 ? 's' : ''));
+  setText('cardTokens', tokens > 0 ? fmtNum(tokens) : '—');
+  setText('cardTokensSub', 'input + output + cache');
+  setText('cardCache', savings > 0 ? fmtPrice(savings,3) : '—');
+  setText('cardCacheSub', savings > 0 ? savingsPct.toFixed(1) + '% of gross cost saved' : 'no cache usage detected');
+  setText('cardAvg', avg > 0 ? fmtPrice(avg, avg < 0.01 ? 4 : 2) : '—');
+  setText('cardAvgSub', 'per active day');
+
+  // Trend badge on cost trend chart
+  const badge = document.getElementById('costTrendBadge');
+  if (total > 0 && prevTotal > 0) {
+    const delta = ((total - prevTotal) / prevTotal) * 100;
+    const sign = delta >= 0 ? '+' : '';
+    badge.textContent = sign + delta.toFixed(0) + '% vs prev';
+    badge.className = 'badge ' + (delta > 10 ? 'badge-gold' : 'badge-green');
+  } else {
+    badge.textContent = activeRange.toUpperCase();
+    badge.className = 'badge badge-green';
+  }
+}
+
+function prevPeriodRecords() {
+  if (activeRange === 'all') return [];
+  const days = activeRange === '7d' ? 7 : activeRange === '30d' ? 30 : 90;
+  const s = daysAgo(days * 2);
+  const e = daysAgo(days);
+  return state.records.filter(r => r.date >= s && r.date < e);
+}
+
+// ================================================================
+// INSIGHTS
+// ================================================================
+function updateInsights(records) {
+  const byModel  = aggregateByModel(records);
+  const totalCost = records.reduce((s,r) => s + calcCost(r), 0);
+  const totalIn   = records.reduce((s,r) => s + (r.inputTokens||0), 0);
+  const totalOut  = records.reduce((s,r) => s + (r.outputTokens||0), 0);
+  const totalCacheRead = records.reduce((s,r) => s + (r.cacheReadTokens||0), 0);
+  const totalSavings   = records.reduce((s,r) => s + calcCacheSavings(r), 0);
+
+  // Efficiency metrics
+  const metrics = [
+    {
+      label: 'Output:Input ratio',
+      val: totalIn > 0 ? (totalOut / totalIn).toFixed(2) + 'x' : '—',
+      hint: 'Higher = more generation per input token'
+    },
+    {
+      label: 'Cost per 1K output tokens',
+      val: totalOut > 0 ? fmtPrice(totalCost / (totalOut / 1000), 4) : '—',
+      hint: 'Normalized cost across model mix'
+    },
+    {
+      label: 'Cache hit rate',
+      val: (totalIn + totalCacheRead) > 0
+        ? ((totalCacheRead / (totalIn + totalCacheRead)) * 100).toFixed(1) + '%'
+        : '—',
+      hint: 'Tokens served from cache vs. fresh input'
+    },
+    {
+      label: 'Avg cost per request',
+      val: records.length > 0 ? fmtPrice(totalCost / records.length, 4) : '—',
+      hint: ''
+    },
+  ];
+
+  const ml = document.getElementById('metricsList');
+  ml.innerHTML = metrics.map(m => `
+    <div class="metric-item">
+      <span class="metric-label">${m.label}</span>
+      <span class="metric-val">${m.val}</span>
+    </div>
+    ${m.hint ? `<div class="metric-hint">${m.hint}</div>` : ''}
+  `).join('');
+
+  // Usage patterns
+  const days = new Set(records.map(r => r.date)).size;
+  const topModel = Object.entries(byModel).sort(([,a],[,b]) => b.cost - a.cost)[0];
+  const projMonth = days > 0 ? (totalCost / days) * 30 : 0;
+
+  // day-of-week analysis
+  const dowCost = [0,0,0,0,0,0,0];
+  const dowCount= [0,0,0,0,0,0,0];
+  records.forEach(r => {
+    const dow = new Date(r.date + 'T00:00:00').getDay();
+    dowCost[dow]  += calcCost(r);
+    dowCount[dow] += 1;
+  });
+  const dowNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const peakDow  = dowCost.indexOf(Math.max(...dowCost));
+
+  const patterns = [
+    { label: 'Top model by cost',    val: topModel ? getModelDisplayName(topModel[0]) : '—' },
+    { label: 'Projected monthly',    val: projMonth > 0 ? fmtPrice(projMonth, 2) : '—' },
+    { label: 'Busiest day of week',  val: dowCount[peakDow] > 0 ? dowNames[peakDow] : '—' },
+    { label: 'Active days in period',val: days > 0 ? String(days) : '—' },
+  ];
+
+  const pl = document.getElementById('patternsList');
+  pl.innerHTML = patterns.map(p => `
+    <div class="metric-item">
+      <span class="metric-label">${p.label}</span>
+      <span class="metric-val">${p.val}</span>
+    </div>
+  `).join('');
+}
+
+// ================================================================
+// BUDGET
+// ================================================================
+function updateBudget(records) {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+  const monthRecs  = state.records.filter(r => r.date >= monthStart);
+  const spent      = monthRecs.reduce((s,r) => s + calcCost(r), 0);
+  const budget     = state.settings.monthlyBudget || 0;
+
+  setText('budgetSpent', fmtPrice(spent, spent < 1 ? 4 : 2));
+
+  const fill = document.getElementById('budgetFill');
+  const note = document.getElementById('budgetNote');
+
+  if (budget > 0) {
+    setText('budgetLimit', `/ ${fmtPrice(budget,0)} limit`);
+    const pct = Math.min((spent / budget) * 100, 100);
+    fill.style.width = pct + '%';
+    fill.className = 'budget-fill' + (pct >= 90 ? ' danger' : pct >= 75 ? ' warn' : '');
+    const remaining = budget - spent;
+    const daysLeft  = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate() - now.getDate();
+    note.textContent = remaining >= 0
+      ? `${fmtPrice(remaining,2)} remaining · ${daysLeft} days left this month`
+      : `${fmtPrice(-remaining,2)} over budget!`;
+    note.style.color = remaining < 0 ? 'var(--danger)' : 'var(--text-muted)';
+    const inp = document.getElementById('budgetInput');
+    if (inp) inp.placeholder = `Current: ${fmtPrice(budget,0)}`;
+  } else {
+    setText('budgetLimit', '/ no limit set');
+    fill.style.width = '0%';
+    note.textContent = 'Set a monthly budget to track spending.';
+    note.style.color = 'var(--text-muted)';
+  }
+}
+
+function setBudget() {
+  const v = parseFloat(document.getElementById('budgetInput').value);
+  if (isNaN(v) || v < 0) return showToast('Enter a valid amount', 'err');
+  state.settings.monthlyBudget = v;
+  saveState();
+  updateBudget(filteredRecords());
+  showToast('Budget updated');
+}
+
+// ================================================================
+// TABLE
+// ================================================================
+function renderTable() {
+  const records = filteredRecords();
+  const modelFilter = document.getElementById('modelFilter')?.value || '';
+
+  // Populate model filter
+  const sel = document.getElementById('modelFilter');
+  const curVal = sel.value;
+  sel.innerHTML = '<option value="">All models</option>';
+  uniqueModels(state.records).forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m; opt.textContent = getModelDisplayName(m);
+    if (m === curVal) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  sel.value = curVal;
+
+  const filtered = modelFilter
+    ? records.filter(r => normalizeModelId(r.model) === modelFilter)
+    : records;
+
+  const sorted = [...filtered].sort((a,b) => (b.date+b.id).localeCompare(a.date+a.id));
+  const shown  = sorted.slice(0, 100);
+  const container = document.getElementById('tableContainer');
+
+  if (!shown.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <h3>No data yet</h3>
+        <p>Import a CSV from the Anthropic console, add entries manually,<br>or load demo data to see the dashboard in action.</p>
+        <div class="empty-actions">
+          <button class="btn btn-primary" onclick="scrollToImport()">Import CSV</button>
+          <button class="btn btn-outline" onclick="loadSampleData()">Load demo data</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  let html = `<table class="data-table">
+    <thead><tr>
+      <th>Date</th><th>Model</th>
+      <th class="num">Input</th><th class="num">Output</th>
+      <th class="num">Cache read</th><th class="num">Cost</th>
+      <th class="num">Savings</th><th>Note</th><th></th>
+    </tr></thead><tbody>`;
+
+  shown.forEach(r => {
+    const cost    = calcCost(r);
+    const savings = calcCacheSavings(r);
+    const fam     = getModelFamily(r.model);
+    html += `<tr>
+      <td>${fmtDate(r.date)}</td>
+      <td><span class="model-chip chip-${fam}">${getModelDisplayName(r.model)}</span></td>
+      <td class="num">${fmtNum(r.inputTokens||0)}</td>
+      <td class="num">${fmtNum(r.outputTokens||0)}</td>
+      <td class="num">${r.cacheReadTokens ? fmtNum(r.cacheReadTokens) : '—'}</td>
+      <td class="num cost-cell">${fmtPrice(cost,4)}</td>
+      <td class="num" style="color:var(--accent)">${savings>0 ? fmtPrice(savings,4) : '—'}</td>
+      <td style="color:var(--text-muted);font-size:11px">${r.note || (r.source === 'sample' ? '<span class="src-chip">demo</span>' : r.source === 'csv' ? '<span class="src-chip">csv</span>' : '')}</td>
+      <td><button class="del-btn" onclick="deleteRecord('${r.id}')" title="Delete">×</button></td>
+    </tr>`;
+  });
+
+  if (filtered.length > 100) {
+    html += `<tr><td colspan="9" style="text-align:center;padding:12px;font-size:12px;color:var(--text-muted)">Showing 100 of ${filtered.length} records</td></tr>`;
+  }
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+// ================================================================
+// CSV IMPORT
+// ================================================================
+const COL_MAP = {
+  date:             ['date','day','timestamp','created_at','period','usage_date'],
+  model:            ['model','model_id','model_name'],
+  inputTokens:      ['input_tokens','input','prompt_tokens','input_token_count'],
+  outputTokens:     ['output_tokens','output','completion_tokens','output_token_count'],
+  cacheReadTokens:  ['cache_read_input_tokens','cache_read_tokens','cache_read','prompt_cache_hit_tokens'],
+  cacheWriteTokens: ['cache_creation_input_tokens','cache_creation_tokens','cache_write','cache_write_tokens'],
+};
+
+function detectColumns(headers) {
+  const h = headers.map(s => s.toLowerCase().trim().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,''));
+  const mapping = {};
+  for (const [field, aliases] of Object.entries(COL_MAP)) {
+    const idx = h.findIndex(hdr => aliases.includes(hdr));
+    if (idx >= 0) mapping[field] = idx;
+  }
+  return mapping;
+}
+
+function parseCSVText(text) {
+  const lines = text.trim().split(/\r?\n/);
+  if (lines.length < 2) return [];
+
+  // Detect delimiter
+  const firstLine = lines[0];
+  const delim = firstLine.includes('\t') ? '\t' : ',';
+
+  function splitRow(line) {
+    const cols = []; let cur = ''; let inQ = false;
+    for (const ch of line) {
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === delim && !inQ) { cols.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
+    cols.push(cur.trim());
+    return cols;
+  }
+
+  const headers = splitRow(lines[0]);
+  const colMap  = detectColumns(headers);
+
+  if (!('date' in colMap) || !('model' in colMap)) {
+    throw new Error('CSV must have "date" and "model" columns. Got: ' + headers.join(', '));
+  }
+  if (!('inputTokens' in colMap) && !('outputTokens' in colMap)) {
+    throw new Error('CSV must have input_tokens or output_tokens columns.');
+  }
+
+  const records = [];
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const row = splitRow(lines[i]);
+    const get = (field) => {
+      if (!(field in colMap)) return null;
+      return row[colMap[field]] ?? null;
+    };
+    const dateRaw = get('date');
+    if (!dateRaw) continue;
+
+    // Normalize date
+    let date = dateRaw.trim().replace(/"/g,'');
+    // Handle ISO datetime: 2024-01-15T12:00:00Z → 2024-01-15
+    if (date.includes('T')) date = date.slice(0,10);
+    // Handle MM/DD/YYYY
+    const mdy = date.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (mdy) date = `${mdy[3]}-${mdy[1].padStart(2,'0')}-${mdy[2].padStart(2,'0')}`;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+
+    const model = (get('model') || 'unknown').replace(/"/g,'').trim();
+    if (!model || model === 'model') continue; // skip header-like rows
+
+    records.push({
+      id:               uid(),
+      date,
+      model,
+      inputTokens:      parseInt(get('inputTokens') || 0, 10)  || 0,
+      outputTokens:     parseInt(get('outputTokens') || 0, 10) || 0,
+      cacheReadTokens:  parseInt(get('cacheReadTokens') || 0, 10) || 0,
+      cacheWriteTokens: parseInt(get('cacheWriteTokens') || 0, 10) || 0,
+      source: 'csv',
+    });
+  }
+  return records;
+}
+
+function importRecords(newRecords) {
+  const existing = new Set(state.records.map(r => `${r.date}|${r.model}|${r.inputTokens}|${r.outputTokens}`));
+  const deduped  = newRecords.filter(r => {
+    const key = `${r.date}|${r.model}|${r.inputTokens}|${r.outputTokens}`;
+    return !existing.has(key);
+  });
+  state.records.push(...deduped);
+  saveState();
+  render();
+  showToast(`Imported ${deduped.length} records (${newRecords.length - deduped.length} duplicates skipped)`, 'ok');
+}
+
+// File drop / input
+document.getElementById('dropZone').addEventListener('click', () => document.getElementById('fileInput').click());
+document.getElementById('dropZone').addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.classList.add('over'); });
+document.getElementById('dropZone').addEventListener('dragleave', e => e.currentTarget.classList.remove('over'));
+document.getElementById('dropZone').addEventListener('drop', e => {
+  e.preventDefault();
+  e.currentTarget.classList.remove('over');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+document.getElementById('fileInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (file) handleFile(file);
+  e.target.value = '';
+});
+
+function handleFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const records = parseCSVText(e.target.result);
+      if (!records.length) return showToast('No valid rows found in CSV', 'err');
+      importRecords(records);
+    } catch (err) {
+      showToast('CSV error: ' + err.message, 'err');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ================================================================
+// MANUAL ENTRY
+// ================================================================
+function submitManual() {
+  const date  = document.getElementById('fDate').value;
+  const model = document.getElementById('fModel').value;
+  const inp   = parseInt(document.getElementById('fInput').value,10)  || 0;
+  const out   = parseInt(document.getElementById('fOutput').value,10) || 0;
+  const cr    = parseInt(document.getElementById('fCacheRead').value,10)  || 0;
+  const cw    = parseInt(document.getElementById('fCacheWrite').value,10) || 0;
+  const note  = document.getElementById('fNote').value.trim();
+
+  if (!date)  return showToast('Please select a date', 'err');
+  if (!model) return showToast('Please select a model', 'err');
+  if (!inp && !out) return showToast('Enter at least input or output tokens', 'err');
+
+  const record = { id: uid(), date, model, inputTokens: inp, outputTokens: out,
+    cacheReadTokens: cr, cacheWriteTokens: cw, note, source: 'manual' };
+  state.records.push(record);
+  saveState();
+  render();
+
+  // Reset form (keep date and model)
+  ['fInput','fOutput','fCacheRead','fCacheWrite','fNote'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  showToast('Entry added');
+}
+
+// ================================================================
+// DELETE
+// ================================================================
+function deleteRecord(id) {
+  state.records = state.records.filter(r => r.id !== id);
+  saveState();
+  render();
+}
+function clearAllData() {
+  if (!confirm('Delete all records? This cannot be undone.')) return;
+  state.records = [];
+  saveState();
+  render();
+  showToast('All data cleared');
+}
+
+// ================================================================
+// SAMPLE DATA
+// ================================================================
+function loadSampleData() {
+  if (state.records.some(r => r.source !== 'sample')) {
+    if (!confirm('Add demo data alongside your existing records?')) return;
+  }
+  const existing = new Set(state.records.filter(r=>r.source==='sample').map(r=>r.date+'|'+r.model));
+  const recs = generateSampleData().filter(r => !existing.has(r.date+'|'+r.model));
+  state.records.push(...recs);
+  saveState();
+  render();
+  showToast('Demo data loaded — 30 days of sample usage', 'ok');
+}
+
+function generateSampleData() {
+  const models  = ['claude-opus-4-8','claude-sonnet-4-6','claude-haiku-4-5'];
+  const weights = [0.15, 0.65, 0.20];
+  const records = [];
+  const now     = new Date();
+
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now); d.setDate(d.getDate() - i);
+    const iso = d.toISOString().slice(0,10);
+    const dow = d.getDay(); // 0=Sun,6=Sat
+    const isWeekend = dow === 0 || dow === 6;
+    const reqs = isWeekend
+      ? 1 + Math.floor(Math.random() * 3)
+      : 3 + Math.floor(Math.random() * 7);
+
+    for (let j = 0; j < reqs; j++) {
+      const rnd = Math.random();
+      let cumul = 0, model = models[0];
+      for (let k = 0; k < models.length; k++) {
+        cumul += weights[k]; if (rnd < cumul) { model = models[k]; break; }
+      }
+
+      const isOpus = model.includes('opus');
+      const base   = isOpus ? 1500 : model.includes('sonnet') ? 900 : 300;
+      const inputTokens  = base + Math.floor(Math.random() * base * 1.5);
+      const outputTokens = Math.floor(inputTokens * (0.2 + Math.random() * 0.5));
+      const hasCache     = !isOpus && Math.random() > 0.55;
+      const cacheReadTokens  = hasCache ? Math.floor(inputTokens * (0.2 + Math.random()*0.4)) : 0;
+      const cacheWriteTokens = hasCache && Math.random() > 0.4 ? Math.floor(inputTokens * 0.15) : 0;
+
+      records.push({ id: uid(), date: iso, model, inputTokens, outputTokens,
+        cacheReadTokens, cacheWriteTokens, source: 'sample' });
+    }
+  }
+  return records;
+}
+
+// ================================================================
+// TOAST
+// ================================================================
+let toastTimer;
+function showToast(msg, type = 'ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ================================================================
+// UTILS
+// ================================================================
+function setText(id, val) {
+  const el = document.getElementById(id); if (el) el.textContent = val;
+}
+function scrollToImport() {
+  document.getElementById('importPanel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// ================================================================
+// RENDER (main update cycle)
+// ================================================================
+function render() {
+  const records = filteredRecords();
+  updateCards(records);
+  initCostTrendChart(records);
+  initModelDistChart(records);
+  initTokenBreakdownChart(records);
+  renderHeatmap(records);
+  updateInsights(records);
+  updateBudget(records);
+  renderTable();
+}
+
+// ================================================================
+// INIT
+// ================================================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadState();
+
+  // Date range tabs
+  document.querySelectorAll('.date-range-tabs .tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.date-range-tabs .tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeRange = btn.dataset.range;
+      render();
+    });
+  });
+
+  // Import / Add buttons scroll
+  document.getElementById('importBtn').addEventListener('click', scrollToImport);
+  document.getElementById('addBtn').addEventListener('click', () => {
+    document.getElementById('addPanel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  document.getElementById('sampleBtn').addEventListener('click', loadSampleData);
+
+  // Set default date on manual form
+  const fDate = document.getElementById('fDate');
+  if (fDate) fDate.value = todayStr();
+
+  // Budget input — allow Enter key
+  document.getElementById('budgetInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') setBudget();
+  });
+
+  render();
+
+  // Show empty state hint if no data
+  if (!state.records.length) {
+    setTimeout(() => {
+      document.getElementById('tableContainer').querySelector('.empty-state') && scrollToImport();
+    }, 500);
+  }
+});
+</script>
+</body>
+</html>

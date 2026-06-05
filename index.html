@@ -4,6 +4,192 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-K2RTNRLHWT');
 </script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jonny Herrick — Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:           #F9F6F0;
+      --surface:      #FFFFFF;
+      --surface-alt:  #F4F1EB;
+      --border:       #E3DED7;
+      --text-primary: #1C1A17;
+      --text-secondary:#6B6660;
+      --text-muted:   #A5A09A;
+      --accent:       #2D5A3D;
+      --accent-hover: #1F3F2B;
+      --accent-light: #EBF2EE;
+      --gold:         #B8832A;
+      --gold-light:   #FDF5E8;
+      --radius:       12px;
+      --shadow-sm:    0 1px 4px rgba(0,0,0,0.07);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 64px 24px 80px;
+    }
+    .hero { margin-bottom: 52px; }
+    .hero h1 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: clamp(36px, 5vw, 52px);
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.1;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+    .hero p {
+      font-size: 16px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      max-width: 580px;
+    }
+    .section-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+      margin-bottom: 48px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s;
+      display: block;
+    }
+    .card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 16px rgba(45,90,61,0.12);
+      transform: translateY(-1px);
+    }
+    .card-icon {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+    .card h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--text-primary);
+    }
+    .card p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .card-tag {
+      display: inline-block;
+      margin-top: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+    .card-tag.gold {
+      background: var(--gold-light);
+      color: var(--gold);
+    }
+    .link-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .link-list li a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.15s;
+    }
+    .link-list li a:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--accent-light);
+    }
+    footer {
+      border-top: 1px solid var(--border);
+      padding-top: 24px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="hero">
+    <h1>Jonny Herrick</h1>
+    <p>Data strategist and analyst helping businesses grow through data, insights, and clear visualization. Working at the intersection of analytics and AI.</p>
+  </div>
+
+  <div class="section-label">Tools & Dashboards</div>
+  <div class="card-grid">
+    <a href="/planner/" class="card">
+      <div class="card-icon">📅</div>
+      <h3>Full Focus Planner</h3>
+      <p>A daily planning app built around the Full Focus system — tasks, time-blocking, and weekly reviews.</p>
+      <span class="card-tag">Web App</span>
+    </a>
+    <a href="/claude-dashboard/" class="card">
+      <div class="card-icon">📊</div>
+      <h3>Claude Usage Dashboard</h3>
+      <p>Track token costs, model usage, cache savings, and spending trends for Claude API usage.</p>
+      <span class="card-tag gold">AI / Analytics</span>
+    </a>
+  </div>
+
+  <div class="section-label">Research & Analysis</div>
+  <ul class="link-list">
+    <li><a href="https://github.com/jon-herrick/portfolio/blob/main/D214-Capstone_Proportions.pdf" target="_blank">
+      📄 Offer Engagement: Defining the Optimal Offer Type
+    </a></li>
+    <li><a href="http://rpubs.com/jonherrick/Retail_EDA" target="_blank">
+      🔍 Exploratory Data Analysis: Retail Data
+    </a></li>
+    <li><a href="https://rpubs.com/jonherrick/RFM-Categorization" target="_blank">
+      💡 RFM Segmentation: Recency, Frequency, Monetary Scoring
+    </a></li>
+  </ul>
+
+  <footer style="margin-top:48px">
+    <p>jonherrick@gmail.com</p>
+  </footer>
+</div>
+</body>
+</html>
