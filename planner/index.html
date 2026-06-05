@@ -684,6 +684,32 @@
     .wc-empty { font-size: 12px; color: var(--text-muted); font-style: italic; }
 
     /* ============================================================
+       SYNC INDICATOR
+    ============================================================ */
+    .sync-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+    .sync-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: background 0.3s;
+    }
+    .sync-dot.syncing { background: #F5A623; animation: pulse 1.2s ease-in-out infinite; }
+    .sync-dot.synced  { background: var(--accent); }
+    .sync-dot.offline { background: var(--danger); }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+    .sync-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.3px;
+    }
+
+    /* ============================================================
        UTILITY
     ============================================================ */
     .hidden { display: none !important; }
@@ -712,6 +738,10 @@
   </div>
 
   <div class="header-actions">
+    <div class="sync-badge" id="syncBadge" title="Notion sync status">
+      <span class="sync-dot" id="syncDot"></span>
+      <span class="sync-text" id="syncText"></span>
+    </div>
     <button class="btn" id="todayBtn">Today</button>
     <div class="view-toggle">
       <button class="view-btn active" id="dayBtn">Day</button>
@@ -820,8 +850,6 @@
 /* ============================================================
    CONSTANTS & HELPERS
 ============================================================ */
-const STORE_KEY = 'fullfocus_v2';
-
 const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -891,36 +919,100 @@ function esc(s) {
 }
 
 /* ============================================================
-   DATA LAYER
+   DATA LAYER — localStorage cache + Notion via /api/day
 ============================================================ */
-let db = (() => {
-  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }
-  catch { return {}; }
-})();
+const CACHE_PFX = 'ffd_day_';
+let db = {};           // in-memory per-day store
+let apiOk = true;      // false after first network/API failure
+let saveTimer = null;
 
-function save() {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(db)); }
-  catch {}
+function emptyDay() {
+  return {
+    intention: '',
+    big3: [
+      { text:'', done:false },
+      { text:'', done:false },
+      { text:'', done:false },
+    ],
+    tasks: [],
+    schedule: {},
+    notes: '',
+    gratitude: '',
+    wins: '',
+    improvement: '',
+  };
 }
 
+// Return in-memory record, seeding from localStorage cache if needed.
 function dayData(k) {
   if (!db[k]) {
-    db[k] = {
-      intention: '',
-      big3: [
-        { text:'', done:false },
-        { text:'', done:false },
-        { text:'', done:false },
-      ],
-      tasks: [],
-      schedule: {},
-      notes: '',
-      gratitude: '',
-      wins: '',
-      improvement: '',
-    };
+    try {
+      const raw = localStorage.getItem(CACHE_PFX + k);
+      db[k] = raw ? { ...emptyDay(), ...JSON.parse(raw) } : emptyDay();
+    } catch { db[k] = emptyDay(); }
   }
   return db[k];
+}
+
+// Persist to localStorage immediately; queue a debounced Notion save.
+function save() {
+  const k = currentKey;
+  try { localStorage.setItem(CACHE_PFX + k, JSON.stringify(db[k])); } catch {}
+
+  if (!apiOk) return;
+  clearTimeout(saveTimer);
+  setSyncStatus('syncing');
+  saveTimer = setTimeout(async () => {
+    try {
+      const res = await fetch('/api/day', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: k, ...db[k] }),
+      });
+      if (!res.ok) throw new Error(`${res.status}`);
+      setSyncStatus('synced');
+    } catch {
+      apiOk = false;
+      setSyncStatus('offline');
+    }
+  }, 1500);
+}
+
+// Fetch a day from Notion and update the in-memory + localStorage cache.
+async function fetchDay(k) {
+  if (!apiOk) return;
+  try {
+    setSyncStatus('syncing');
+    const res = await fetch(`/api/day?date=${k}`);
+    if (!res.ok) throw new Error(`${res.status}`);
+    const data = await res.json();
+    if (data) {
+      db[k] = { ...emptyDay(), ...data };
+      try { localStorage.setItem(CACHE_PFX + k, JSON.stringify(db[k])); } catch {}
+    }
+    setSyncStatus('synced');
+  } catch {
+    apiOk = false;
+    setSyncStatus('offline');
+  }
+}
+
+// Sync status indicator
+function setSyncStatus(status) {
+  const dot = document.getElementById('syncDot');
+  const txt = document.getElementById('syncText');
+  dot.className = 'sync-dot ' + status;
+  txt.textContent = { syncing:'Syncing…', synced:'Synced', offline:'Offline' }[status] ?? '';
+}
+
+// Navigate to a day: render from cache instantly, then sync from Notion.
+async function navigateTo(k) {
+  currentKey = k;
+  render();
+  scrollToNow();
+  await fetchDay(k);
+  render(); // re-render if Notion returned fresher data
+  scrollToNow();
 }
 
 /* ============================================================
@@ -1171,10 +1263,9 @@ function renderWeekView() {
     `;
 
     card.addEventListener('click', () => {
-      currentKey  = k;
       currentView = 'day';
       setViewUI('day');
-      render();
+      navigateTo(k);
     });
 
     grid.appendChild(card);
@@ -1223,21 +1314,15 @@ function scrollToNow() {
    EVENT WIRING
 ============================================================ */
 document.getElementById('prevBtn').addEventListener('click', () => {
-  currentKey = shiftKey(currentKey, -1);
-  render();
-  scrollToNow();
+  navigateTo(shiftKey(currentKey, -1));
 });
 
 document.getElementById('nextBtn').addEventListener('click', () => {
-  currentKey = shiftKey(currentKey, 1);
-  render();
-  scrollToNow();
+  navigateTo(shiftKey(currentKey, 1));
 });
 
 document.getElementById('todayBtn').addEventListener('click', () => {
-  currentKey = todayKey();
-  render();
-  scrollToNow();
+  navigateTo(todayKey());
 });
 
 document.getElementById('dayBtn').addEventListener('click',  () => { setViewUI('day');  render(); });
@@ -1276,8 +1361,7 @@ setInterval(() => {
 /* ============================================================
    INIT
 ============================================================ */
-render();
-setTimeout(scrollToNow, 120);
+navigateTo(currentKey);
 </script>
 
 </body>

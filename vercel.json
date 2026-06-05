@@ -1,0 +1,6 @@
+{
+  "version": 2,
+  "functions": {
+    "api/day.js": { "memory": 256, "maxDuration": 10 }
+  }
+}
