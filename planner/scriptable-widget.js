@@ -16,7 +16,7 @@
 //    (Optional: set the "Parameter" field to a different planner URL to
 //    override BASE_URL without editing the script.)
 
-const BASE_URL = "https://YOUR-PROJECT.vercel.app"; // <-- replace with your Vercel URL
+const BASE_URL = "https://portfolio-flame-rho-e3ofgp1rfs.vercel.app"; // your live Full Focus Planner (Vercel)
 
 const baseUrl = (args.widgetParameter || BASE_URL).replace(/\/+$/, "");
 
