@@ -710,6 +710,178 @@
     }
 
     /* ============================================================
+       POMODORO TIMER
+    ============================================================ */
+    .timer-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .timer-btn svg { flex-shrink: 0; }
+    .tb-label {
+      font-variant-numeric: tabular-nums;
+      min-width: 34px;
+      text-align: left;
+    }
+    .timer-btn.running {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--accent-light);
+    }
+
+    .pomo-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(28,26,23,0.28);
+      z-index: 300;
+    }
+
+    .pomo-panel {
+      position: fixed;
+      z-index: 310;
+      top: calc(var(--header-h) + env(safe-area-inset-top, 0px) + 10px);
+      right: max(16px, env(safe-area-inset-right, 0px));
+      width: 320px;
+      max-width: calc(100vw - 24px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+    @media (max-width: 480px) {
+      .pomo-panel { left: 12px; right: 12px; width: auto; }
+    }
+
+    .pomo-modes {
+      display: flex;
+      width: 100%;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .pomo-mode {
+      flex: 1;
+      height: 34px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .pomo-mode.active {
+      background: var(--surface);
+      color: var(--accent);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .pomo-dial {
+      position: relative;
+      width: 216px;
+      height: 216px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pomo-dial svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+    .pomo-track { fill: none; stroke: var(--border); stroke-width: 8; }
+    .pomo-prog {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.3s linear, stroke 0.3s;
+    }
+    .pomo-dial.break .pomo-prog { stroke: var(--gold); }
+
+    .pomo-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .pomo-time {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 54px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .pomo-phase {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .pomo-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+    .pomo-btn {
+      height: 44px;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .pomo-btn.primary {
+      flex: 1;
+      background: var(--accent);
+      color: #fff;
+      border: 1px solid var(--accent);
+    }
+    .pomo-btn.primary:active { background: var(--accent-hover); }
+    .pomo-btn.secondary {
+      width: 62px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+    .pomo-btn.secondary:active { background: var(--surface-alt); }
+
+    .pomo-dots { display: flex; gap: 8px; }
+    .pomo-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border-strong);
+      transition: all 0.2s;
+    }
+    .pomo-dot.filled { background: var(--accent); border-color: var(--accent); }
+
+    .pomo-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+      letter-spacing: 0.2px;
+    }
+
+    /* ============================================================
        UTILITY
     ============================================================ */
     .hidden { display: none !important; }
@@ -742,6 +914,10 @@
       <span class="sync-dot" id="syncDot"></span>
       <span class="sync-text" id="syncText"></span>
     </div>
+    <button class="btn timer-btn" id="timerBtn" title="Pomodoro timer" aria-label="Pomodoro timer">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/></svg>
+      <span class="tb-label" id="timerBtnLabel">Timer</span>
+    </button>
     <button class="btn" id="todayBtn">Today</button>
     <div class="view-toggle">
       <button class="view-btn active" id="dayBtn">Day</button>
@@ -750,6 +926,40 @@
   </div>
 
 </header>
+
+<!-- ======================================================
+     POMODORO TIMER
+====================================================== -->
+<div class="pomo-backdrop hidden" id="pomoBackdrop"></div>
+<div class="pomo-panel hidden" id="pomoPanel" role="dialog" aria-label="Pomodoro timer">
+
+  <div class="pomo-modes">
+    <button class="pomo-mode active" data-mode="focus">Focus</button>
+    <button class="pomo-mode"        data-mode="short">Short</button>
+    <button class="pomo-mode"        data-mode="long">Long</button>
+  </div>
+
+  <div class="pomo-dial" id="pomoDial">
+    <svg viewBox="0 0 216 216" aria-hidden="true">
+      <circle class="pomo-track" cx="108" cy="108" r="100"/>
+      <circle class="pomo-prog"  cx="108" cy="108" r="100" id="pomoProg"/>
+    </svg>
+    <div class="pomo-center">
+      <div class="pomo-time"  id="pomoTime">25:00</div>
+      <div class="pomo-phase" id="pomoPhase">Focus</div>
+    </div>
+  </div>
+
+  <div class="pomo-controls">
+    <button class="pomo-btn secondary" id="pomoReset">Reset</button>
+    <button class="pomo-btn primary"   id="pomoToggle">Start</button>
+    <button class="pomo-btn secondary" id="pomoSkip">Skip</button>
+  </div>
+
+  <div class="pomo-dots" id="pomoDots"></div>
+  <div class="pomo-hint" id="pomoHint"></div>
+
+</div>
 
 <!-- ======================================================
      MAIN
@@ -1359,9 +1569,252 @@ setInterval(() => {
 }, 60_000);
 
 /* ============================================================
+   POMODORO TIMER  (device-local — not part of Notion day data)
+============================================================ */
+const POMO_KEY        = 'ffd_pomo';
+const POMO_DUR        = { focus: 25*60, short: 5*60, long: 15*60 };
+const POMO_LABEL      = { focus: 'Focus', short: 'Short break', long: 'Long break' };
+const POMO_LONG_EVERY = 4;               // long break after this many focus sessions
+const POMO_C          = 2 * Math.PI * 100; // ring circumference (r=100)
+
+const pomo = {
+  mode: 'focus',
+  remaining: POMO_DUR.focus,  // seconds left (authoritative when paused)
+  running: false,
+  endAt: 0,                   // epoch ms the current run ends (when running)
+  completed: 0,               // focus sessions done this cycle (0..POMO_LONG_EVERY)
+  tick: null,
+  audioCtx: null,
+  titleTimer: null,
+};
+
+function pomoFmt(sec) {
+  sec = Math.max(0, Math.round(sec));
+  return `${padZ(Math.floor(sec/60))}:${padZ(sec%60)}`;
+}
+
+function pomoRemaining() {
+  return pomo.running
+    ? Math.max(0, Math.round((pomo.endAt - Date.now()) / 1000))
+    : pomo.remaining;
+}
+
+function pomoPersist() {
+  try {
+    localStorage.setItem(POMO_KEY, JSON.stringify({
+      mode: pomo.mode, completed: pomo.completed,
+      running: pomo.running, endAt: pomo.endAt, remaining: pomo.remaining,
+    }));
+  } catch {}
+}
+
+function pomoLoad() {
+  try {
+    const s = JSON.parse(localStorage.getItem(POMO_KEY) || '{}');
+    if (s.mode && POMO_DUR[s.mode]) pomo.mode = s.mode;
+    if (Number.isFinite(s.completed)) pomo.completed = s.completed;
+    if (s.running && s.endAt) {
+      pomo.running = true;
+      pomo.endAt   = s.endAt;               // loop recomputes remaining (and may complete)
+    } else if (Number.isFinite(s.remaining)) {
+      pomo.remaining = s.remaining;
+    } else {
+      pomo.remaining = POMO_DUR[pomo.mode];
+    }
+  } catch {}
+}
+
+/* ---- audio + haptics ---- */
+function pomoUnlockAudio() {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    if (!pomo.audioCtx) pomo.audioCtx = new AC();
+    if (pomo.audioCtx.state === 'suspended') pomo.audioCtx.resume();
+  } catch {}
+}
+
+function pomoChime() {
+  try {
+    const ctx = pomo.audioCtx;
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
+    const now = ctx.currentTime;
+    [880, 1174.66].forEach((f, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.value = f;
+      const t = now + i * 0.18;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.22, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t); o.stop(t + 0.55);
+    });
+  } catch {}
+}
+
+function pomoFlashTitle(mode) {
+  const msg = mode === 'focus' ? '☕ Break over — time to focus' : '✓ Session done — take a break';
+  document.title = msg;
+  clearTimeout(pomo.titleTimer);
+  pomo.titleTimer = setTimeout(() => { document.title = 'Full Focus Planner'; }, 8000);
+}
+
+/* ---- render ---- */
+function pomoRenderStatic() {
+  const rem   = pomoRemaining();
+  const full  = POMO_DUR[pomo.mode];
+
+  document.getElementById('pomoDial').classList.toggle('break', pomo.mode !== 'focus');
+  document.getElementById('pomoPhase').textContent = POMO_LABEL[pomo.mode];
+
+  document.querySelectorAll('.pomo-mode').forEach(b =>
+    b.classList.toggle('active', b.dataset.mode === pomo.mode));
+
+  const tg = document.getElementById('pomoToggle');
+  tg.textContent = pomo.running ? 'Pause' : (rem < full && rem > 0 ? 'Resume' : 'Start');
+
+  const dots = document.getElementById('pomoDots');
+  dots.innerHTML = '';
+  for (let i = 0; i < POMO_LONG_EVERY; i++) {
+    const d = document.createElement('div');
+    d.className = 'pomo-dot' + (i < pomo.completed ? ' filled' : '');
+    dots.appendChild(d);
+  }
+
+  const left = POMO_LONG_EVERY - pomo.completed;
+  document.getElementById('pomoHint').textContent = pomo.mode === 'focus'
+    ? `${left} focus ${left === 1 ? 'session' : 'sessions'} until a long break`
+    : 'Enjoy your break';
+}
+
+function pomoRenderTick() {
+  const rem  = pomoRemaining();
+  const full = POMO_DUR[pomo.mode];
+  const frac = full > 0 ? rem / full : 0;
+
+  document.getElementById('pomoProg').style.strokeDashoffset = String(POMO_C * (1 - frac));
+  document.getElementById('pomoProg').style.strokeDasharray  = String(POMO_C);
+  document.getElementById('pomoTime').textContent = pomoFmt(rem);
+
+  const btn = document.getElementById('timerBtn');
+  btn.classList.toggle('running', pomo.running);
+  document.getElementById('timerBtnLabel').textContent = pomo.running ? pomoFmt(rem) : 'Timer';
+}
+
+function pomoRender() { pomoRenderStatic(); pomoRenderTick(); }
+
+/* ---- control ---- */
+function pomoStartLoop() {
+  clearInterval(pomo.tick);
+  pomo.tick = setInterval(() => {
+    if (Date.now() >= pomo.endAt) { pomoComplete(false); return; }
+    pomoRenderTick();
+  }, 250);
+}
+
+function pomoToggle() {
+  if (pomo.running) {
+    pomo.remaining = pomoRemaining();
+    pomo.running = false;
+    clearInterval(pomo.tick);
+  } else {
+    pomoUnlockAudio();
+    if (pomo.remaining <= 0) pomo.remaining = POMO_DUR[pomo.mode];
+    pomo.endAt = Date.now() + pomo.remaining * 1000;
+    pomo.running = true;
+    pomoStartLoop();
+  }
+  pomoPersist();
+  pomoRender();
+}
+
+function pomoSetMode(mode) {
+  if (!POMO_DUR[mode]) return;
+  pomo.mode = mode;
+  pomo.running = false;
+  clearInterval(pomo.tick);
+  pomo.remaining = POMO_DUR[mode];
+  pomo.endAt = 0;
+  pomoPersist();
+  pomoRender();
+}
+
+function pomoReset() {
+  pomo.running = false;
+  clearInterval(pomo.tick);
+  pomo.remaining = POMO_DUR[pomo.mode];
+  pomo.endAt = 0;
+  pomoPersist();
+  pomoRender();
+}
+
+// Advance to the next phase. `silent` skips the chime/haptic (used by Skip).
+function pomoComplete(silent) {
+  clearInterval(pomo.tick);
+  pomo.running = false;
+
+  if (!silent) {
+    pomoChime();
+    try { if (navigator.vibrate) navigator.vibrate([180, 90, 180]); } catch {}
+  }
+
+  let next;
+  if (pomo.mode === 'focus') {
+    pomo.completed = Math.min(POMO_LONG_EVERY, pomo.completed + 1);
+    next = pomo.completed >= POMO_LONG_EVERY ? 'long' : 'short';
+  } else {
+    if (pomo.mode === 'long') pomo.completed = 0;
+    next = 'focus';
+  }
+
+  pomo.mode = next;
+  pomo.remaining = POMO_DUR[next];
+  pomo.endAt = 0;
+  pomoPersist();
+  pomoRender();
+  if (!silent) pomoFlashTitle(next);
+}
+
+/* ---- panel ---- */
+function pomoOpen() {
+  document.getElementById('pomoPanel').classList.remove('hidden');
+  document.getElementById('pomoBackdrop').classList.remove('hidden');
+  pomoRender();
+}
+function pomoClose() {
+  document.getElementById('pomoPanel').classList.add('hidden');
+  document.getElementById('pomoBackdrop').classList.add('hidden');
+}
+function pomoTogglePanel() {
+  document.getElementById('pomoPanel').classList.contains('hidden') ? pomoOpen() : pomoClose();
+}
+
+/* ---- wiring ---- */
+document.getElementById('timerBtn').addEventListener('click', pomoTogglePanel);
+document.getElementById('pomoBackdrop').addEventListener('click', pomoClose);
+document.getElementById('pomoToggle').addEventListener('click', pomoToggle);
+document.getElementById('pomoReset').addEventListener('click', pomoReset);
+document.getElementById('pomoSkip').addEventListener('click', () => pomoComplete(true));
+document.querySelectorAll('.pomo-mode').forEach(b =>
+  b.addEventListener('click', () => pomoSetMode(b.dataset.mode)));
+
+function pomoInit() {
+  pomoLoad();
+  pomoRender();
+  if (pomo.running) {
+    if (Date.now() >= pomo.endAt) pomoComplete(true); // expired while app was closed
+    else pomoStartLoop();
+  }
+}
+
+/* ============================================================
    INIT
 ============================================================ */
 navigateTo(currentKey);
+pomoInit();
 </script>
 
 </body>
