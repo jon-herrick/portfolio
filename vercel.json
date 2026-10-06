@@ -1,6 +1,13 @@
 {
   "version": 2,
   "functions": {
-    "api/day.js": { "memory": 256, "maxDuration": 10 }
+    "api/day.js": {
+      "memory": 256,
+      "maxDuration": 10
+    },
+    "api/events.js": {
+      "memory": 256,
+      "maxDuration": 15
+    }
   }
 }

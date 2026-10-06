@@ -710,6 +710,62 @@
     }
 
     /* ============================================================
+       CALENDAR EVENTS (read-only, from /api/events)
+    ============================================================ */
+    .allday-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .allday-row:empty { display: none; }
+
+    .cal-ev {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      min-width: 0;
+      margin: 2px 0 4px;
+      padding: 4px 9px;
+      border-left: 3px solid var(--accent);
+      border-radius: 4px;
+      background: var(--accent-light);
+      font-size: 12.5px;
+      line-height: 1.35;
+      color: var(--text-primary);
+    }
+    .cal-ev.allday {
+      margin: 0;
+      border-left-color: var(--gold);
+      background: var(--gold-light);
+    }
+    .cal-ev.cal-1 { border-left-color: var(--gold);   background: var(--gold-light); }
+    .cal-ev.cal-2 { border-left-color: var(--danger); background: #FBEDEB; }
+    .cal-ev.past  { opacity: 0.5; }
+
+    .cal-ev-time {
+      flex-shrink: 0;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    .cal-ev-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .cal-ev-loc {
+      flex-shrink: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* ============================================================
        POMODORO TIMER
     ============================================================ */
     .timer-btn {
@@ -1029,6 +1085,7 @@
         <!-- Schedule -->
         <div class="schedule-inner">
           <div class="section-label">Schedule</div>
+          <div class="allday-row" id="allDayRow"></div>
           <div class="schedule-grid" id="scheduleGrid"></div>
         </div>
 
@@ -1207,6 +1264,23 @@ async function fetchDay(k) {
   }
 }
 
+// Calendar events (read-only) for a day, from the published Outlook/ICS feeds.
+let eventsByDay = {};
+let calOk = true;      // false once /api/events is unavailable (not configured, offline, static host)
+
+async function fetchEvents(k) {
+  if (!calOk) return;
+  const from = parseKey(k).toISOString();
+  const to   = parseKey(shiftKey(k, 1)).toISOString();
+  try {
+    const res = await fetch(`/api/events?date=${k}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
+    if (!res.ok) throw new Error(`${res.status}`);
+    eventsByDay[k] = (await res.json()).events || [];
+  } catch {
+    calOk = false;
+  }
+}
+
 // Sync status indicator
 function setSyncStatus(status) {
   const dot = document.getElementById('syncDot');
@@ -1220,8 +1294,8 @@ async function navigateTo(k) {
   currentKey = k;
   render();
   scrollToNow();
-  await fetchDay(k);
-  render(); // re-render if Notion returned fresher data
+  await Promise.all([fetchDay(k), fetchEvents(k)]);
+  render(); // re-render with fresher Notion data and calendar events
   scrollToNow();
 }
 
@@ -1394,7 +1468,49 @@ function renderSchedule() {
     });
   });
 
+  renderEvents();
   placeNowLine();
+}
+
+function fmtClock(d) {
+  const h = d.getHours();
+  return `${(h % 12) || 12}:${padZ(d.getMinutes())}${h < 12 ? 'a' : 'p'}`;
+}
+
+// Place calendar events: all-day ones above the grid, timed ones in their start slot.
+function renderEvents() {
+  const row = document.getElementById('allDayRow');
+  row.innerHTML = '';
+  const dayStart = parseKey(currentKey);
+  const now = Date.now();
+
+  (eventsByDay[currentKey] || []).forEach(ev => {
+    const chip = document.createElement('div');
+
+    if (ev.allDay) {
+      chip.className = 'cal-ev allday';
+      chip.innerHTML = `<span class="cal-ev-title">${esc(ev.title)}</span>`;
+      row.appendChild(chip);
+      return;
+    }
+
+    const s = new Date(ev.start);
+    const e = new Date(ev.end);
+    // Events that began yesterday or fall outside the grid go in the nearest slot.
+    let mins = s < dayStart ? 0 : s.getHours() * 60 + s.getMinutes();
+    mins = Math.min(Math.max(mins, SCHED_START_H * 60), SCHED_END_H * 60 - 30);
+    const key = slotKey(Math.floor(mins / 60), mins % 60 >= 30 ? 30 : 0);
+    const content = document.querySelector(`.time-slot[data-key="${key}"] .t-content`);
+    if (!content) return;
+
+    chip.className = `cal-ev cal-${ev.cal % 3}${e.getTime() < now ? ' past' : ''}`;
+    chip.innerHTML = `
+      <span class="cal-ev-time">${fmtClock(s)}–${fmtClock(e)}</span>
+      <span class="cal-ev-title">${esc(ev.title)}</span>
+      ${ev.location ? `<span class="cal-ev-loc">${esc(ev.location)}</span>` : ''}
+    `;
+    content.insertBefore(chip, content.querySelector('.t-input'));
+  });
 }
 
 function placeNowLine() {
@@ -1517,7 +1633,13 @@ function scrollToNow() {
   if (mins < start) return;
   const slotIdx = Math.max(0, Math.floor((mins - start) / 30) - 1);
   const wrapper = document.getElementById('scheduleWrapper');
-  wrapper.scrollTo({ top: slotIdx * SLOT_H, behavior: 'smooth' });
+  // Measure the real slot — calendar events make some slots taller than SLOT_H.
+  const slot = SLOTS[Math.min(slotIdx, SLOTS.length - 1)];
+  const el   = document.querySelector(`.time-slot[data-key="${slotKey(slot.h, slot.m)}"]`);
+  const top  = el
+    ? el.getBoundingClientRect().top - wrapper.getBoundingClientRect().top + wrapper.scrollTop
+    : slotIdx * SLOT_H;
+  wrapper.scrollTo({ top, behavior: 'smooth' });
 }
 
 /* ============================================================
